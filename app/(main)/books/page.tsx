@@ -1,39 +1,46 @@
 // app/(main)/books/page.tsx
 import { createClient } from '@/lib/supabase/server';
+import BookSearch from '@/components/BookSearch';
 
 export default async function BooksPage() {
   const supabase = await createClient();
 
-  const { data: books, error } = await supabase
+  const { data: books } = await supabase
     .from('books')
-    .select('*')
+    .select(`
+      *,
+      reading_log (
+        rating
+      )
+    `)
     .order('title', { ascending: true });
 
-  if (error) {
-    console.error('Error loading books:', error);
-  }
+  // Calculate average rating for each book
+  const booksWithAvg = books?.map((book: any) => {
+    const ratings = book.reading_log?.map((log: any) => log.rating) || [];
+    const avg = ratings.length > 0 
+      ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length 
+      : 0;
+    return { ...book, avg_rating: avg };
+  }) || [];
+
+  const uniqueGenres = Array.from(
+    new Set(booksWithAvg.map((b: any) => b.genre).filter(Boolean))
+  ).sort();
 
   return (
     <div>
-      <h1 className="text-4xl font-bold mb-8">📚 Our Library</h1>
-      <p className="text-gray-600 mb-8">Total books: {books?.length || 0}</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {books?.map((book: any) => (
-          <div key={book.id} className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition">
-            <h3 className="font-semibold text-lg line-clamp-2">{book.title}</h3>
-            <p className="text-gray-600 mt-1">{book.author}</p>
-            <p className="text-sm text-gray-500 mt-3">{book.location}</p>
-            
-            <div className="mt-4">
-              <span className={`inline-block px-4 py-1 text-xs rounded-full font-medium
-                ${book.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                {book.status || 'Unknown'}
-              </span>
-            </div>
-          </div>
-        ))}
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900">Our Library</h1>
+          <p className="text-gray-600 mt-1">Total books: {booksWithAvg.length}</p>
+        </div>
       </div>
+
+      <BookSearch 
+        initialBooks={booksWithAvg} 
+        genres={uniqueGenres} 
+      />
     </div>
   );
 }
