@@ -4,29 +4,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { LogOut, BookOpen, ShieldCheck } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { LogOut, BookOpen } from 'lucide-react';
 
 export default function Navbar() {
   const router = useRouter();
   const supabase = createClient();
-  const [isFamily, setIsFamily] = useState(false);
-
-  useEffect(() => {
-    const checkRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      setIsFamily(data?.role === 'family');
-    };
-    checkRole();
-  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -46,13 +28,6 @@ export default function Navbar() {
           <Link href="/my-requests">My Requests</Link>
           <Link href="/lending">Lending</Link>
           <Link href="/reading-log">Reading Log</Link>
-
-          {isFamily && (
-            <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-2xl text-xs font-semibold">
-              <ShieldCheck size={14} />
-              FAMILY
-            </div>
-          )}
 
           <button
             onClick={handleSignOut}
