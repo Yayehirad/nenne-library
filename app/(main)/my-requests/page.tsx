@@ -23,11 +23,9 @@ export default async function MyRequestsPage() {
       id,
       status,
       request_date,
-      book_id,
-      requester_id,
+      books!book_id (title),
       requester_name,
-      requester_email,
-      books!book_id (title)
+      requester_email
     `)
     .order('request_date', { ascending: false });
 
@@ -35,11 +33,7 @@ export default async function MyRequestsPage() {
     <div className="p-8 max-w-7xl mx-auto">
       <h1 className="text-4xl font-bold mb-2">My Requests</h1>
       <p className="text-gray-600 mb-8">All book borrow requests in the family library</p>
-
-      <MyRequestsClient 
-        requests={requests || []} 
-        isFamily={isFamily} 
-      />
+      <MyRequestsClient requests={requests || []} isFamily={isFamily} />
     </div>
   );
 }

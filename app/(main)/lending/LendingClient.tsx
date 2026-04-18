@@ -8,14 +8,17 @@ export default function LendingClient({ lending }: { lending: any[] }) {
   const router = useRouter();
 
   const markAsReturned = async (requestId: string, bookId: string) => {
-    if (!confirm('Mark as returned and make available?')) return;
+    if (!confirm('Mark this book as returned and make it available again?')) return;
 
-    await supabase.from('borrow_requests').update({ 
-      status: 'returned', 
-      returned_date: new Date().toISOString() 
-    }).eq('id', requestId);
+    await supabase
+      .from('borrow_requests')
+      .update({ status: 'returned', returned_date: new Date().toISOString() })
+      .eq('id', requestId);
 
-    await supabase.from('books').update({ status: 'available' }).eq('id', bookId);
+    await supabase
+      .from('books')
+      .update({ status: 'available' })
+      .eq('id', bookId);
 
     alert('✅ Book returned successfully!');
     window.location.reload();
@@ -41,7 +44,10 @@ export default function LendingClient({ lending }: { lending: any[] }) {
                 {item.request_date ? new Date(item.request_date).toLocaleDateString('en-AU') : '—'}
               </td>
               <td className="py-5 px-8 text-right">
-                <button onClick={() => markAsReturned(item.id, item.book_id)} className="px-6 py-2 bg-emerald-600 text-white rounded-2xl">
+                <button
+                  onClick={() => markAsReturned(item.id, item.book_id)}
+                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl"
+                >
                   Mark as Returned
                 </button>
               </td>

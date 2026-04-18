@@ -16,10 +16,8 @@ export default function MyRequestsClient({ requests, isFamily }: { requests: any
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
     if (!confirm(`Mark as ${status}?`)) return;
 
-    const { error } = await supabase.from('borrow_requests').update({ status }).eq('id', id);
-
-    if (error) alert(error.message);
-    else window.location.reload();
+    await supabase.from('borrow_requests').update({ status }).eq('id', id);
+    window.location.reload();
   };
 
   return (

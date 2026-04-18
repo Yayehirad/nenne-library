@@ -17,7 +17,7 @@ export default async function LendingPage() {
 
   if (userData?.role !== 'family') {
     return (
-      <div className="p-8 max-w-7xl mx-auto text-center">
+      <div className="p-8 max-w-7xl mx-auto text-center py-20">
         <h1 className="text-4xl font-bold mb-4">Lending</h1>
         <p className="text-red-600">This page is only visible to Family members.</p>
       </div>
@@ -31,10 +31,9 @@ export default async function LendingPage() {
       status,
       request_date,
       book_id,
-      requester_id,
       requester_name,
       requester_email,
-      books!book_id (title, author)
+      books!book_id (title)
     `)
     .eq('status', 'approved')
     .order('request_date', { ascending: false });
