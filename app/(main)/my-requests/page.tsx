@@ -9,7 +9,6 @@ export default async function MyRequestsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Check if user is Family
   const { data: userData } = await supabase
     .from('users')
     .select('role')
@@ -18,19 +17,19 @@ export default async function MyRequestsPage() {
 
   const isFamily = userData?.role === 'family';
 
-  // Simplified query - easier to debug
   const { data: requests } = await supabase
     .from('borrow_requests')
     .select(`
       id,
       status,
-      created_at,
+      request_date,
       book_id,
       requester_id,
-      books (title),
-      users (name, email)
+      requester_name,
+      requester_email,
+      books!book_id (title)
     `)
-    .order('created_at', { ascending: false });
+    .order('request_date', { ascending: false });
 
   return (
     <div className="p-8 max-w-7xl mx-auto">

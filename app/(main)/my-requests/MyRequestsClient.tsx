@@ -1,33 +1,26 @@
-// app/(main)/my-requests/MyRequestsClient.tsx
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-export default function MyRequestsClient({ 
-  requests, 
-  isFamily 
-}: { 
-  requests: any[]; 
-  isFamily: boolean;
-}) {
+export default function MyRequestsClient({ requests, isFamily }: { requests: any[]; isFamily: boolean }) {
   const supabase = createClient();
   const router = useRouter();
 
-  const updateStatus = async (requestId: string, newStatus: 'approved' | 'rejected') => {
-    if (!confirm(`Mark this request as ${newStatus}?`)) return;
+  const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    if (!confirm(`Mark as ${status}?`)) return;
 
-    const { error } = await supabase
-      .from('borrow_requests')
-      .update({ status: newStatus })
-      .eq('id', requestId);
+    const { error } = await supabase.from('borrow_requests').update({ status }).eq('id', id);
+    if (error) alert(error.message);
+    else router.refresh();
+  };
 
-    if (error) {
-      alert('Error: ' + error.message);
-    } else {
-      alert(`Request ${newStatus} successfully!`);
-      router.refresh();
-    }
+  const cancelRequest = async (id: string) => {
+    if (!confirm('Cancel request?')) return;
+
+    const { error } = await supabase.from('borrow_requests').delete().eq('id', id);
+    if (error) alert(error.message);
+    else router.refresh();
   };
 
   return (
@@ -35,59 +28,43 @@ export default function MyRequestsClient({
       <table className="w-full">
         <thead className="bg-gray-50 border-b">
           <tr>
-            <th className="text-left py-5 px-8 font-medium text-gray-600">Book</th>
-            <th className="text-left py-5 px-8 font-medium text-gray-600">Requested by</th>
-            <th className="text-left py-5 px-8 font-medium text-gray-600">Date</th>
-            <th className="text-left py-5 px-8 font-medium text-gray-600">Status</th>
-            {isFamily && <th className="text-right py-5 px-8 font-medium text-gray-600">Actions</th>}
+            <th className="text-left py-5 px-8">Book</th>
+            <th className="text-left py-5 px-8">Requested by</th>
+            <th className="text-left py-5 px-8">Date</th>
+            <th className="text-left py-5 px-8">Status</th>
+            <th className="text-right py-5 px-8">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {requests.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="text-center py-12 text-gray-400">
-                No borrow requests yet
+          {requests.map((r) => (
+            <tr key={r.id} className="border-b hover:bg-gray-50">
+              <td className="py-5 px-8 font-medium">{r.books?.title}</td>
+              <td className="py-5 px-8">{r.requester_name || r.requester_email}</td>
+              <td className="py-5 px-8 text-gray-500">
+                {r.request_date ? new Date(r.request_date).toLocaleDateString('en-AU') : '—'}
+              </td>
+              <td className="py-5 px-8">
+                <span className={`px-4 py-1 text-xs rounded-full ${
+                  r.status === 'approved' ? 'bg-green-100 text-green-700' :
+                  r.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {r.status}
+                </span>
+              </td>
+              <td className="py-5 px-8 text-right">
+                {r.status === 'pending' && (
+                  isFamily ? (
+                    <>
+                      <button onClick={() => updateStatus(r.id, 'approved')} className="px-4 py-1 text-sm bg-green-600 text-white rounded-xl mr-2">Approve</button>
+                      <button onClick={() => updateStatus(r.id, 'rejected')} className="px-4 py-1 text-sm bg-red-600 text-white rounded-xl">Reject</button>
+                    </>
+                  ) : (
+                    <button onClick={() => cancelRequest(r.id)} className="px-4 py-1 text-sm bg-gray-600 text-white rounded-xl">Cancel</button>
+                  )
+                )}
               </td>
             </tr>
-          ) : (
-            requests.map((req: any) => (
-              <tr key={req.id} className="border-b last:border-none hover:bg-gray-50">
-                <td className="py-5 px-8 font-medium">{req.books?.title}</td>
-                <td className="py-5 px-8 text-gray-700">
-                  {req.users?.name || req.users?.email || 'Unknown'}
-                </td>
-                <td className="py-5 px-8 text-gray-500 text-sm">
-                  {new Date(req.created_at).toLocaleDateString()}
-                </td>
-                <td className="py-5 px-8">
-                  <span className={`inline-block px-4 py-1 text-xs font-medium rounded-full ${
-                    req.status === 'approved' ? 'bg-green-100 text-green-700' :
-                    req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {req.status === 'approved' ? 'Approved' :
-                     req.status === 'rejected' ? 'Rejected' : 'Pending'}
-                  </span>
-                </td>
-                {isFamily && req.status === 'pending' && (
-                  <td className="py-5 px-8 text-right space-x-2">
-                    <button
-                      onClick={() => updateStatus(req.id, 'approved')}
-                      className="px-5 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-2xl transition"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => updateStatus(req.id, 'rejected')}
-                      className="px-5 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-2xl transition"
-                    >
-                      Reject
-                    </button>
-                  </td>
-                )}
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
     </div>
