@@ -69,24 +69,20 @@ export default function MyRequestsClient({
                      req.status === 'rejected' ? 'Rejected' : 'Pending'}
                   </span>
                 </td>
-                {isFamily && (
+                {isFamily && req.status === 'pending' && (
                   <td className="py-5 px-8 text-right space-x-2">
-                    {req.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => updateStatus(req.id, 'approved')}
-                          className="px-5 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-2xl transition"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => updateStatus(req.id, 'rejected')}
-                          className="px-5 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-2xl transition"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
+                    <button
+                      onClick={() => updateStatus(req.id, 'approved')}
+                      className="px-5 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-2xl transition"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => updateStatus(req.id, 'rejected')}
+                      className="px-5 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-2xl transition"
+                    >
+                      Reject
+                    </button>
                   </td>
                 )}
               </tr>

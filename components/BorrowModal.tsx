@@ -3,61 +3,63 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 export default function BorrowModal({ book, onClose }: { book: any; onClose: () => void }) {
   const supabase = createClient();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   const handleRequest = async () => {
     setLoading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Please log in to request a book');
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase
       .from('borrow_requests')
       .insert({
         book_id: book.id,
-        requester_id: (await supabase.auth.getUser()).data.user?.id,
-        status: 'pending',
+        requester_id: user.id,
+        status: 'pending'
       });
 
     if (error) {
-      setMessage('Failed to send request. Please try again.');
+      alert('Error requesting book: ' + error.message);
     } else {
-      setMessage('✅ Request sent successfully! A family member will review it.');
-      setTimeout(() => {
-        onClose();
-      }, 1800);
+      alert('✅ Request sent successfully! It will appear in My Requests.');
+      onClose();
+      router.refresh(); // Refresh My Requests if open
     }
     setLoading(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4">
-        <h2 className="text-2xl font-bold mb-1">Request to Borrow</h2>
-        <p className="text-gray-600 mb-6">{book.title}</p>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl max-w-md w-full p-8">
+        <h2 className="text-2xl font-bold mb-2">Request to Borrow</h2>
+        <p className="text-gray-600 mb-6">{book.title} by {book.author}</p>
 
-        <Button
-          onClick={handleRequest}
-          disabled={loading}
-          className="w-full py-6 text-lg"
-        >
-          {loading ? 'Sending request...' : 'Confirm Request'}
-        </Button>
+        <div className="space-y-4">
+          <button
+            onClick={handleRequest}
+            disabled={loading}
+            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-2xl transition"
+          >
+            {loading ? 'Sending request...' : 'Confirm Request'}
+          </button>
 
-        {message && (
-          <p className={`text-center mt-4 ${message.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>
-            {message}
-          </p>
-        )}
-
-        <button
-          onClick={onClose}
-          className="mt-6 text-gray-500 hover:text-gray-700 text-sm w-full"
-        >
-          Cancel
-        </button>
+          <button
+            onClick={onClose}
+            className="w-full py-4 border text-gray-700 font-medium rounded-2xl hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );
