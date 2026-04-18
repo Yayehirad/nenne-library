@@ -9,11 +9,13 @@ import BookCard from './BookCard';
 export default function BookSearch({ 
   books, 
   genres, 
-  locations 
+  locations,
+  isFamily 
 }: { 
   books: any[]; 
   genres: { genre: string; count: number }[]; 
   locations: string[]; 
+  isFamily: boolean;
 }) {
   const [search, setSearch] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All Genres');
@@ -59,7 +61,7 @@ export default function BookSearch({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredBooks.map((book) => (
-          <BookCard key={book.id} book={book} />
+          <BookCard key={book.id} book={book} isFamily={isFamily} />
         ))}
       </div>
 

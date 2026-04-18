@@ -10,11 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function NewBookForm({ 
-  genres, 
-  locations 
+  genres = [], 
+  locations = [] 
 }: { 
-  genres: string[]; 
-  locations: string[]; 
+  genres?: string[]; 
+  locations?: string[]; 
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -66,9 +66,13 @@ export default function NewBookForm({
               <SelectValue placeholder="Select genre" />
             </SelectTrigger>
             <SelectContent>
-              {genres.map((genre) => (
-                <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-              ))}
+              {genres.length > 0 ? (
+                genres.map((genre) => (
+                  <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                ))
+              ) : (
+                <SelectItem value="">No genres available</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -80,9 +84,13 @@ export default function NewBookForm({
               <SelectValue placeholder="Select location" />
             </SelectTrigger>
             <SelectContent>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-              ))}
+              {locations.length > 0 ? (
+                locations.map((loc) => (
+                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                ))
+              ) : (
+                <SelectItem value="">No locations available</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>

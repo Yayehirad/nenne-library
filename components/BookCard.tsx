@@ -1,79 +1,83 @@
 // components/BookCard.tsx
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import BorrowModal from './BorrowModal';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import BookDetailModal from './BookDetailModal';
-import { Star } from 'lucide-react';
+import BorrowModal from './BorrowModal';
+import { Edit, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
-export default function BookCard({ book }: { book: any }) {
+export default function BookCard({ book, isFamily }: { book: any; isFamily: boolean }) {
+  const supabase = createClient();
+  const router = useRouter();
   const [showDetail, setShowDetail] = useState(false);
   const [showBorrow, setShowBorrow] = useState(false);
 
-  if (!book) return null;
+  const handleDelete = async () => {
+    if (!confirm('🗑️ Are you sure you want to permanently delete this book?')) return;
 
-  const status = (book.status || '').toLowerCase();
-  const isAvailable = status === 'available';
+    const { error } = await supabase
+      .from('books')
+      .delete()
+      .eq('id', book.id);
 
-  // Average rating from reading_log
-  const avgRating = book.avg_rating 
-    ? parseFloat(book.avg_rating) 
-    : 0;
+    if (error) {
+      alert('Error deleting book: ' + error.message);
+    } else {
+      alert('✅ Book deleted successfully');
+      router.refresh();
+    }
+  };
 
   return (
     <>
       <div 
         onClick={() => setShowDetail(true)}
-        className="bg-white border border-gray-200 rounded-3xl p-6 hover:shadow-xl transition-all hover:-translate-y-1 h-full flex flex-col cursor-pointer"
+        className="bg-white border rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer group"
       >
-        <div className="flex-1">
-          <h3 className="font-semibold text-lg leading-tight text-gray-900 line-clamp-2 mb-2">
-            {book.title}
-          </h3>
-          <p className="text-gray-600">{book.author}</p>
-          <p className="text-sm text-gray-500 mt-4">{book.location}</p>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3 items-center">
-          {/* Status */}
-          <span className={`px-4 py-1 text-xs font-medium rounded-full ${
-            isAvailable ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-          }`}>
-            {isAvailable ? "Available" : "Borrowed"}
-          </span>
-
-          {/* Genre */}
-          {book.genre && (
-            <span className="px-4 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-              {book.genre}
-            </span>
-          )}
-
-          {/* Average Rating */}
-          {avgRating > 0 && (
-            <div className="flex items-center gap-1 text-amber-500 text-sm font-medium ml-auto">
-              <Star size={16} fill="currentColor" />
-              <span>{avgRating.toFixed(1)}</span>
+        <div className="p-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-semibold text-lg leading-tight line-clamp-2">{book.title}</h3>
+              <p className="text-gray-600 text-sm mt-1">{book.author}</p>
             </div>
-          )}
 
-          {/* Buttons */}
-          <div className="ml-auto flex gap-2">
-            {isAvailable && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowBorrow(true); }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-5 py-2.5 rounded-2xl transition"
-              >
-                Request
-              </button>
+            {/* Family-only buttons */}
+            {isFamily && (
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                <Link
+                  href={`/books/${book.id}/edit`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-xl"
+                >
+                  <Edit size={18} />
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                  className="p-2 text-red-600 hover:bg-red-100 rounded-xl"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             )}
+          </div>
 
-            <Link href={`/books/${book.id}/edit`} onClick={(e) => e.stopPropagation()}>
-              <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-2xl transition">
-                ✏️
-              </button>
-            </Link>
+          <div className="flex gap-2 mt-4">
+            <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+              book.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+            }`}>
+              {book.status === 'available' ? '✅ Available' : '📖 Borrowed'}
+            </span>
+            {book.genre && (
+              <span className="text-xs px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">
+                {book.genre}
+              </span>
+            )}
           </div>
         </div>
       </div>
