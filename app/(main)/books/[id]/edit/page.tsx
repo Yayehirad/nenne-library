@@ -7,16 +7,13 @@ export default async function EditBookPage({ params }: { params: { id: string } 
   const supabase = await createClient();
   const { id } = await params;
 
-  // Fetch the book
-  const { data: book, error } = await supabase
+  const { data: book } = await supabase
     .from('books')
     .select('*')
     .eq('id', id)
     .single();
 
-  if (error || !book) {
-    redirect('/books');
-  }
+  if (!book) redirect('/books');
 
   // Fetch clean genres and locations
   const { data: genreData } = await supabase
@@ -44,7 +41,6 @@ export default async function EditBookPage({ params }: { params: { id: string } 
         book={book} 
         genres={genres} 
         locations={locations} 
-        onSuccess={() => redirect('/books')} 
       />
     </div>
   );

@@ -31,7 +31,6 @@ export default async function NewBookPage() {
       <NewBookForm 
         genres={genres} 
         locations={locations} 
-        onSuccess={() => redirect('/books')} 
       />
     </div>
   );
