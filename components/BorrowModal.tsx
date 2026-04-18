@@ -24,16 +24,15 @@ export default function BorrowModal({ book, onClose }: { book: any; onClose: () 
       .insert({
         book_id: book.id,
         requester_id: user.id,
-        requester_name: 'User', // temporary
+        requester_name: 'User',
         status: 'pending'
       });
 
-    if (error) {
-      alert('Error: ' + error.message);
-    } else {
-      alert('✅ Request sent!');
+    if (error) alert('Error: ' + error.message);
+    else {
+      alert('✅ Request sent successfully!');
       onClose();
-      router.refresh();
+      window.location.reload(); // Hard reload to update everything
     }
     setLoading(false);
   };
@@ -42,7 +41,7 @@ export default function BorrowModal({ book, onClose }: { book: any; onClose: () 
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl max-w-md w-full p-8">
         <h2 className="text-2xl font-bold mb-2">Request to Borrow</h2>
-        <p className="mb-6">{book.title}</p>
+        <p className="text-gray-600 mb-6">{book.title}</p>
 
         <button
           onClick={handleRequest}
