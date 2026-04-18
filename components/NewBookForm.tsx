@@ -3,17 +3,21 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function NewBookForm({ genres, locations, onSuccess }: { 
+export default function NewBookForm({ 
+  genres, 
+  locations 
+}: { 
   genres: string[]; 
   locations: string[]; 
-  onSuccess?: () => void;
 }) {
   const supabase = createClient();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -37,15 +41,13 @@ export default function NewBookForm({ genres, locations, onSuccess }: {
       alert('Error adding book: ' + error.message);
     } else {
       alert('✅ New book added successfully!');
-      setFormData({ title: '', author: '', genre: '', location: '', status: 'available', description: '', age_group: '' });
-      onSuccess?.();
+      router.push('/books');
     }
     setLoading(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Same fields as EditBookForm but without pre-filled values */}
       <div>
         <label className="block text-sm font-medium mb-1 text-gray-700">Title</label>
         <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />

@@ -2,19 +2,24 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function EditBookForm({ book, genres, locations, onSuccess }: { 
+export default function EditBookForm({ 
+  book, 
+  genres, 
+  locations 
+}: { 
   book: any; 
   genres: string[]; 
   locations: string[]; 
-  onSuccess?: () => void;
 }) {
   const supabase = createClient();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     title: book.title || '',
@@ -41,7 +46,7 @@ export default function EditBookForm({ book, genres, locations, onSuccess }: {
       alert('Error updating book: ' + error.message);
     } else {
       alert('✅ Book updated successfully!');
-      onSuccess?.();
+      router.push('/books');
     }
     setLoading(false);
   };
