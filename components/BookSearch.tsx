@@ -2,81 +2,65 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import BookCard from './BookCard';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import BookCard from './BookCard';
 
-export default function BookSearch({
-  initialBooks,
-  genres,
-}: {
-  initialBooks: any[];
-  genres: string[];
-}) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+export default function BookSearch({ books, genres }: { books: any[]; genres: string[] }) {
+  const [search, setSearch] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('All Genres');
 
   const filteredBooks = useMemo(() => {
-    return initialBooks
-      .filter((book): book is any => book != null) // remove undefined/null
-      .filter((book) => {
-        const matchesSearch =
-          !searchTerm ||
-          book.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          book.author?.toLowerCase().includes(searchTerm.toLowerCase());
+    return books.filter((book) => {
+      const matchesSearch =
+        !search ||
+        book.title?.toLowerCase().includes(search.toLowerCase()) ||
+        book.author?.toLowerCase().includes(search.toLowerCase());
 
-        const matchesGenre = !selectedGenre || book.genre === selectedGenre;
+      const matchesGenre =
+        selectedGenre === 'All Genres' || book.genre === selectedGenre;
 
-        return matchesSearch && matchesGenre;
-      });
-  }, [initialBooks, searchTerm, selectedGenre]);
+      return matchesSearch && matchesGenre;
+    });
+  }, [books, search, selectedGenre]);
 
   return (
-    <div>
-      <div className="mb-8">
-        <Input
-          type="text"
-          placeholder="Search by title or author..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="rounded-2xl py-6 text-lg"
-        />
+    <div className="space-y-8">
+      {/* Search + Genre Dropdown */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search by title or author..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 text-base"
+          />
+        </div>
+
+        <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+          <SelectTrigger className="w-full md:w-72 h-12">
+            <SelectValue placeholder="All Genres" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All Genres">All Genres</SelectItem>
+            {genres.map((genre) => (
+              <SelectItem key={genre} value={genre}>
+                {genre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
-        <button
-          onClick={() => setSelectedGenre(null)}
-          className={`px-6 py-2.5 rounded-2xl text-sm font-medium transition ${
-            selectedGenre === null
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700'
-          }`}
-        >
-          All Genres
-        </button>
-
-        {genres.map((genre) => (
-          <button
-            key={genre}
-            onClick={() => setSelectedGenre(genre)}
-            className={`px-6 py-2.5 rounded-2xl text-sm font-medium transition ${
-              selectedGenre === genre
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700'
-            }`}
-          >
-            {genre}
-          </button>
+      {/* Results */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredBooks.map((book) => (
+          <BookCard key={book.id} book={book} />
         ))}
       </div>
 
-      {filteredBooks.length === 0 ? (
+      {filteredBooks.length === 0 && (
         <p className="text-center text-gray-500 py-12">No books found.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredBooks.map((book: any) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
       )}
     </div>
   );
