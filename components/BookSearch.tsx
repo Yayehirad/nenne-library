@@ -6,19 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import BookCard from './BookCard';
 
-export default function BookSearch({ books, genres }: { books: any[]; genres: string[] }) {
+export default function BookSearch({ 
+  books, 
+  genres, 
+  locations 
+}: { 
+  books: any[]; 
+  genres: { genre: string; count: number }[]; 
+  locations: string[]; 
+}) {
   const [search, setSearch] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All Genres');
 
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
-      const matchesSearch =
-        !search ||
+      const matchesSearch = !search || 
         book.title?.toLowerCase().includes(search.toLowerCase()) ||
         book.author?.toLowerCase().includes(search.toLowerCase());
 
-      const matchesGenre =
-        selectedGenre === 'All Genres' || book.genre === selectedGenre;
+      const matchesGenre = selectedGenre === 'All Genres' || book.genre === selectedGenre;
 
       return matchesSearch && matchesGenre;
     });
@@ -26,7 +32,6 @@ export default function BookSearch({ books, genres }: { books: any[]; genres: st
 
   return (
     <div className="space-y-8">
-      {/* Search + Genre Dropdown */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <Input
@@ -39,20 +44,19 @@ export default function BookSearch({ books, genres }: { books: any[]; genres: st
 
         <Select value={selectedGenre} onValueChange={setSelectedGenre}>
           <SelectTrigger className="w-full md:w-72 h-12">
-            <SelectValue placeholder="All Genres" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="All Genres">All Genres</SelectItem>
-            {genres.map((genre) => (
+            {genres.map(({ genre, count }) => (
               <SelectItem key={genre} value={genre}>
-                {genre}
+                {genre} ({count})
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Results */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredBooks.map((book) => (
           <BookCard key={book.id} book={book} />

@@ -1,35 +1,38 @@
-// app/(main)/books/page.tsx
+// app/(main)/books/new/page.tsx
 import { createClient } from '@/lib/supabase/server';
-import BookSearch from '@/components/BookSearch';
+import NewBookForm from '@/components/NewBookForm';
+import { redirect } from 'next/navigation';
 
-export default async function BooksPage() {
+export default async function NewBookPage() {
   const supabase = await createClient();
 
-  const { data: books } = await supabase
+  // Fetch clean genres and locations
+  const { data: genreData } = await supabase
     .from('books')
-    .select('*')
-    .order('title', { ascending: true });
+    .select('genre')
+    .not('genre', 'is', null);
 
-  // Get unique and sorted genres
   const genres = Array.from(
-    new Set(
-      books
-        ?.map((book) => book.genre)
-        .filter(Boolean)
-        .map((g) => g.trim())
-    )
+    new Set(genreData?.map((row) => row.genre?.trim()).filter(Boolean))
+  ).sort();
+
+  const { data: locationData } = await supabase
+    .from('books')
+    .select('location')
+    .not('location', 'is', null);
+
+  const locations = Array.from(
+    new Set(locationData?.map((row) => row.location?.trim()).filter(Boolean))
   ).sort();
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-4xl font-bold">Our Library</h1>
-          <p className="text-gray-600">Total books: {books?.length || 0}</p>
-        </div>
-      </div>
-
-      <BookSearch books={books || []} genres={genres} />
+    <div className="max-w-2xl mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8">Add New Book</h1>
+      <NewBookForm 
+        genres={genres} 
+        locations={locations} 
+        onSuccess={() => redirect('/books')} 
+      />
     </div>
   );
 }
