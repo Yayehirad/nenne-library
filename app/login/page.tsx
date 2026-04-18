@@ -1,35 +1,37 @@
-// app/(main)/layout.tsx
-import { createClient } from '@/lib/supabase/server';
-import Navbar from '@/components/Navbar';
-import { redirect } from 'next/navigation';
-import { Suspense } from 'react';
+// app/login/page.tsx
+'use client';
 
-async function AuthCheck({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
-  if (!user) {
-    redirect('/login');
-  }
+export default function LoginPage() {
+  const router = useRouter();
+  const supabase = createClient();
 
-  return <>{children}</>;
-}
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/books` },
+    });
+  };
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <Suspense fallback={<div className="text-center py-12">Loading library...</div>}>
-          <AuthCheck>
-            {children}
-          </AuthCheck>
-        </Suspense>
-      </main>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-10 rounded-3xl shadow-xl w-full max-w-md text-center">
+        <h1 className="text-4xl font-bold text-emerald-600 mb-2">📚 Nenne Library</h1>
+        <p className="text-gray-600 mb-8">Family Book Collection</p>
+
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full bg-black text-white py-4 rounded-2xl font-medium hover:bg-gray-800 transition"
+        >
+          Continue with Google
+        </button>
+
+        <p className="text-xs text-gray-500 mt-8">
+          Only Family members can manage books
+        </p>
+      </div>
     </div>
   );
 }
